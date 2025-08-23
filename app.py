@@ -55,12 +55,16 @@ def generate_response(mensaje):
         prompt = f"Responde de manera clara y natural a este mensaje:\n{mensaje}"
 
     try:
-        response = openai.Completion.create(
-            model="text-davinci-003",
-            prompt=prompt,
-            max_tokens=150,
-            temperature=0.7
+        response = openai.chat.completions.create(
+            model="gpt-5-mini",
+            messages=[
+                {"role": "system", "content": "Eres un asistente que responde como el usuario."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=150
         )
+        
         return response.choices[0].text.strip()
     except Exception as e:
         print("⚠️ Error con OpenAI:", str(e))
