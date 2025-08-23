@@ -65,7 +65,7 @@ def generate_response(mensaje):
             max_tokens=150
         )
         
-        return response.choices[0].text.strip()
+        return response.choices[0].message['content'].strip()
     except Exception as e:
         print("⚠️ Error con OpenAI:", str(e))
         return "Lo siento, hubo un error procesando tu mensaje."
