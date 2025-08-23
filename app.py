@@ -7,7 +7,7 @@ from flask import Flask, request
 app = Flask(__name__)
 
 # --- Configuración OpenAI ---
-openai.api_key = "OPENAI_API_KEY"  # 🔑 usa la variable de entorno en Render
+openai.api_key = os.getenv("OPENAI_API_KEY")  # 🔑 usa la variable de entorno en Render
 
 # --- Configuración Green API ---
 API_TOKEN = "572653d72da549d7b75e65edcb1eca5927a428feb8d8429897"
