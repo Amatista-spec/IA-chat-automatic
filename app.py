@@ -47,28 +47,20 @@ def send_message(chat_id, message):
 
 # --- Función para IA ---
 def generate_response(mensaje):
-    if dataset:
-        import random
-        ejemplo = random.choice(dataset)
-        prompt = f"Responde este mensaje como si fueras yo, usando este ejemplo de estilo:\nEjemplo Input: {ejemplo['input']}\nEjemplo Output: {ejemplo['output']}\nMensaje a responder: {mensaje}"
-    else:
-        prompt = f"Responde este mensaje de manera clara y amigable:\n{mensaje}"
-
-    response = openai.ChatCompletion.create(
-        model="gpt-5-mini",
-        messages=[
-            {"role": "system", "content": "Eres un asistente que responde como el usuario."},
-            {"role": "user", "content": prompt}
-        ],
-        temperature=0.7,
-        max_tokens=150
-    )
-    return response.choices[0].message['content'].strip()
-
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "Responde como si fueras yo, de manera amigable y clara."},
+                {"role": "user", "content": mensaje}
+            ],
+            temperature=0.7,
+            max_tokens=150
+        )
+        return response.choices[0].message.content.strip()
     except Exception as e:
-        print("⚠️ Error con OpenAI:", str(e))
+        print(f"⚠️ Error con OpenAI: {e}")
         return "Lo siento, hubo un error procesando tu mensaje."
-
 
 # --- Endpoint principal ---
 @app.route("/", methods=["GET"])
