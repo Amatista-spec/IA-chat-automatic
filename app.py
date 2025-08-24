@@ -51,7 +51,7 @@ if not ID_INSTANCE:
     ID_INSTANCE = "7105307689"
     print("⚠️ Usando ID_INSTANCE por defecto")
     
-API_URL = f"https://7105.api.green-api.com/waInstance{ID_INSTANCE}/"
+API_URL = f"https://7105.api.greenapi.com/waInstance{ID_INSTANCE}/"
 
 # --- Tu número de WhatsApp (para evitar bucles) ---
 MY_NUMBER = f"{ID_INSTANCE}@c.us"  # Ajusta esto si es necesario
@@ -77,7 +77,7 @@ def send_message(chat_id, message):
             chat_id = f"{chat_id}@c.us"
         
         # Formato correcto según documentación Green API
-        url = f"https://7103.api.green-api.com/waInstance{ID_INSTANCE}/sendMessage/{API_TOKEN}"
+        url = f"https://7105.api.greenapi.com/waInstance{ID_INSTANCE}/sendMessage/{API_TOKEN}"
         
         data = {
             "chatId": chat_id,
@@ -89,7 +89,7 @@ def send_message(chat_id, message):
         }
         
         print(f"📤 Enviando mensaje a {chat_id}: {message[:50]}...")
-        print(f"🔗 URL: https://7103.api.green-api.com/waInstance{ID_INSTANCE}/sendMessage/[TOKEN]")
+        print(f"🔗 URL: https://7105.api.greenapi.com/waInstance{ID_INSTANCE}/sendMessage/[TOKEN]")
         
         response = requests.post(url, json=data, headers=headers, timeout=15)
         
@@ -144,7 +144,7 @@ def generate_response(mensaje):
             system_message = f"{context}Basándote en estos ejemplos, mantén mi estilo y personalidad al responder."
         
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="meta-llama/llama-4-scout-17b-16e-instruct",
             messages=[
                 {"role": "system", "content": system_message},
                 {"role": "user", "content": mensaje}
