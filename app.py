@@ -3,12 +3,21 @@ import os
 import time
 import requests
 from flask import Flask, request
-from groq import Groq
-
 app = Flask(__name__)
 
 # --- Configuración Groq (API gratuita) ---
-groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+groq_client = None
+try:
+    from groq import Groq
+    groq_api_key = os.getenv("GROQ_API_KEY")
+    if groq_api_key:
+        groq_client = Groq(api_key=groq_api_key)
+        print("✅ Cliente Groq inicializado correctamente")
+    else:
+        print("⚠️ GROQ_API_KEY no encontrada")
+except Exception as e:
+    print(f"❌ Error inicializando Groq: {e}")
+    groq_client = None
 
 # --- Configuración Green API ---
 API_TOKEN = os.getenv("GREEN_API_TOKEN")  # ✅ Ahora usa variable de entorno
@@ -221,7 +230,8 @@ def test():
 if __name__ == "__main__":
     print("🚀 Iniciando bot de WhatsApp...")
     print(f"📊 Dataset: {len(dataset)} ejemplos cargados")
-    print(f"🔑 Groq API Key: {'✅ Configurada' if os.getenv('GROQ_API_KEY') else '❌ No configurada'}")
+    print(f"🔑 Groq API Key: {'✅ Configurada' if groq_client else '❌ No configurada'}")
+    print(f"🤖 Cliente Groq: {'✅ Activo' if groq_client else '❌ Usando respuestas simples'}")
     print(f"🔑 Green API Token: {'✅ Configurada' if API_TOKEN else '❌ No configurada'}")
     print(f"🔑 Instance ID: {'✅ Configurada' if ID_INSTANCE else '❌ No configurada'}")
     
