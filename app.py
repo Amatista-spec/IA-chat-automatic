@@ -8,7 +8,16 @@ app = Flask(__name__)
 # --- Configuración Groq (API gratuita) ---
 groq_client = None
 try:
-    from groq import Groq
+    # Intentar importar diferentes formas
+    try:
+        from groq import Groq
+    except ImportError:
+        try:
+            from groq.client import Groq
+        except ImportError:
+            print("⚠️ No se pudo importar Groq, usando respuestas simples")
+            raise ImportError("Groq no disponible")
+    
     groq_api_key = os.getenv("GROQ_API_KEY")
     if groq_api_key:
         groq_client = Groq(api_key=groq_api_key)
@@ -17,14 +26,30 @@ try:
         print("⚠️ GROQ_API_KEY no encontrada")
 except Exception as e:
     print(f"❌ Error inicializando Groq: {e}")
+    print("✅ Continuando con respuestas inteligentes usando dataset")
     groq_client = None
 
 # --- Configuración Green API ---
-API_TOKEN = os.getenv("GREEN_API_TOKEN")  # ✅ Ahora usa variable de entorno
-ID_INSTANCE = os.getenv("GREEN_API_INSTANCE_ID")  # ✅ Ahora usa variable de entorno
+API_TOKEN = os.getenv("GREEN_API_TOKEN") or os.getenv("GREEN_API_ID")  # Doble verificación
+ID_INSTANCE = os.getenv("GREEN_API_INSTANCE_ID") or os.getenv("GREEN_API_INSTANCE") or os.getenv("GREEN_API_ID")
 
-if not API_TOKEN or not ID_INSTANCE:
-    print("❌ ERROR: Faltan variables de entorno GREEN_API_TOKEN o GREEN_API_INSTANCE_ID")
+# Debug de variables
+print(f"🔍 Variables disponibles:")
+print(f"   GREEN_API_TOKEN: {bool(os.getenv('GREEN_API_TOKEN'))}")
+print(f"   GREEN_API_INSTANCE_ID: {bool(os.getenv('GREEN_API_INSTANCE_ID'))}")
+print(f"   GROQ_API_KEY: {bool(os.getenv('GROQ_API_KEY'))}")
+
+if not API_TOKEN:
+    print("❌ ERROR: GREEN_API_TOKEN no encontrada")
+    # Usar valores por defecto temporalmente (SOLO PARA TESTING)
+    API_TOKEN = "572653d72da549d7b75e65edcb1eca5927a428feb8d8429897"
+    print("⚠️ Usando API_TOKEN por defecto")
+    
+if not ID_INSTANCE:
+    print("❌ ERROR: GREEN_API_INSTANCE_ID no encontrada") 
+    # Usar valores por defecto temporalmente (SOLO PARA TESTING)
+    ID_INSTANCE = "7105307689"
+    print("⚠️ Usando ID_INSTANCE por defecto")
     
 API_URL = f"https://7105.api.greenapi.com/waInstance{ID_INSTANCE}/"
 
