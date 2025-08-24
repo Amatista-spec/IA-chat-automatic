@@ -3,16 +3,16 @@ import os
 import time
 import requests
 from flask import Flask, request
-from openai import OpenAI
+from groq import Groq
 
 app = Flask(__name__)
 
-# --- Configuración OpenAI ---
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# --- Configuración Groq (API gratuita) ---
+groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 # --- Configuración Green API ---
 API_TOKEN = os.getenv("GREEN_API_TOKEN")  # ✅ Ahora usa variable de entorno
-ID_INSTANCE = os.getenv("GREEN_API_KEY")  # ✅ Ahora usa variable de entorno
+ID_INSTANCE = os.getenv("GREEN_API_INSTANCE_ID")  # ✅ Ahora usa variable de entorno
 
 if not API_TOKEN or not ID_INSTANCE:
     print("❌ ERROR: Faltan variables de entorno GREEN_API_TOKEN o GREEN_API_INSTANCE_ID")
@@ -221,7 +221,7 @@ def test():
 if __name__ == "__main__":
     print("🚀 Iniciando bot de WhatsApp...")
     print(f"📊 Dataset: {len(dataset)} ejemplos cargados")
-    print(f"🔑 OpenAI API Key: {'✅ Configurada' if os.getenv('OPENAI_API_KEY') else '❌ No configurada'}")
+    print(f"🔑 Groq API Key: {'✅ Configurada' if os.getenv('GROQ_API_KEY') else '❌ No configurada'}")
     print(f"🔑 Green API Token: {'✅ Configurada' if API_TOKEN else '❌ No configurada'}")
     print(f"🔑 Instance ID: {'✅ Configurada' if ID_INSTANCE else '❌ No configurada'}")
     
