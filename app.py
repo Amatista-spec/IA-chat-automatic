@@ -69,57 +69,56 @@ except Exception as e:
 # --- Función para enviar mensajes ---
 def send_message(chat_id, message):
     try:
+        if not API_TOKEN or not ID_INSTANCE:
+            print("❌ Faltan credenciales de Green API")
+            return {"error": "Missing credentials"}
+            
         if not chat_id.endswith("@c.us"):
             chat_id = f"{chat_id}@c.us"
         
-        # Intentar múltiples formatos de URL
-        urls_to_try = [
-            f"https://7105.api.green-api.com/waInstance{ID_INSTANCE}/sendMessage/{API_TOKEN}",
-            f"https://api.green-api.com/waInstance{ID_INSTANCE}/sendMessage/{API_TOKEN}",
-            f"https://7105.api.greenapi.com/waInstance{ID_INSTANCE}/sendMessage/{API_TOKEN}"
-        ]
+        # Formato correcto según documentación Green API
+        url = f"https://7103.api.green-api.com/waInstance{ID_INSTANCE}/sendMessage/{API_TOKEN}"
         
         data = {
             "chatId": chat_id,
             "message": message
         }
         
+        headers = {
+            "Content-Type": "application/json"
+        }
+        
         print(f"📤 Enviando mensaje a {chat_id}: {message[:50]}...")
+        print(f"🔗 URL: https://7103.api.green-api.com/waInstance{ID_INSTANCE}/sendMessage/[TOKEN]")
         
-        # Probar cada URL hasta que funcione una
-        for i, url in enumerate(urls_to_try):
+        response = requests.post(url, json=data, headers=headers, timeout=15)
+        
+        print(f"🔎 Respuesta Green API: {response.status_code}")
+        
+        if response.status_code == 200:
             try:
-                print(f"🔄 Intentando URL {i+1}: {url[:50]}...")
-                response = requests.post(url, json=data, timeout=10)
+                result = response.json()
+                print(f"✅ Mensaje enviado exitosamente: {result}")
+                return result
+            except json.JSONDecodeError:
+                print("✅ Mensaje enviado (respuesta sin JSON)")
+                return {"status": "sent", "code": 200}
                 
-                print(f"🔎 Respuesta Green API (URL {i+1}): {response.status_code}")
-                
-                if response.status_code == 200:
-                    try:
-                        result = response.json()
-                        print(f"✅ Mensaje enviado exitosamente con URL {i+1}: {result}")
-                        return result
-                    except json.JSONDecodeError:
-                        print("⚠️ Respuesta no es JSON válido pero código 200")
-                        return {"status": "sent", "details": "200 OK"}
-                elif response.status_code == 403:
-                    print(f"❌ Error 403 con URL {i+1}: {response.text[:200]}")
-                    continue  # Probar siguiente URL
-                else:
-                    print(f"❌ Error HTTP {response.status_code} con URL {i+1}: {response.text[:200]}")
-                    continue
-                    
-            except requests.exceptions.Timeout:
-                print(f"⚠️ Timeout con URL {i+1}")
-                continue
-            except Exception as e:
-                print(f"❌ Error con URL {i+1}: {e}")
-                continue
-        
-        # Si todas las URLs fallan
-        print("❌ Todas las URLs fallaron")
-        return {"error": "All URLs failed", "details": "403 Forbidden en todas"}
+        elif response.status_code == 403:
+            print(f"❌ Error 403: {response.text[:300]}")
+            print("🔧 Posibles causas:")
+            print("   - Token incorrecto")
+            print("   - Instancia desconectada")
+            print("   - WhatsApp Web desconectado")
+            return {"error": "403 Forbidden", "details": response.text[:300]}
             
+        else:
+            print(f"❌ Error HTTP {response.status_code}: {response.text[:300]}")
+            return {"error": f"HTTP {response.status_code}", "details": response.text[:300]}
+            
+    except requests.exceptions.Timeout:
+        print("⚠️ Timeout al enviar mensaje")
+        return {"error": "Timeout"}
     except Exception as e:
         print(f"❌ Error general enviando mensaje: {e}")
         return {"error": str(e)}
