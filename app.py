@@ -51,7 +51,7 @@ if not ID_INSTANCE:
     ID_INSTANCE = "7105307689"
     print("⚠️ Usando ID_INSTANCE por defecto")
     
-API_URL = f"https://7105.api.greenapi.com/waInstance{ID_INSTANCE}/"
+API_URL = f"https://7105.api.green-api.com/waInstance{ID_INSTANCE}/"
 
 # --- Tu número de WhatsApp (para evitar bucles) ---
 MY_NUMBER = f"{ID_INSTANCE}@c.us"  # Ajusta esto si es necesario
@@ -72,34 +72,56 @@ def send_message(chat_id, message):
         if not chat_id.endswith("@c.us"):
             chat_id = f"{chat_id}@c.us"
         
-        url = f"{API_URL}sendMessage/{API_TOKEN}"
+        # Intentar múltiples formatos de URL
+        urls_to_try = [
+            f"https://7105.api.green-api.com/waInstance{ID_INSTANCE}/sendMessage/{API_TOKEN}",
+            f"https://api.green-api.com/waInstance{ID_INSTANCE}/sendMessage/{API_TOKEN}",
+            f"https://7105.api.greenapi.com/waInstance{ID_INSTANCE}/sendMessage/{API_TOKEN}"
+        ]
+        
         data = {
             "chatId": chat_id,
             "message": message
         }
         
         print(f"📤 Enviando mensaje a {chat_id}: {message[:50]}...")
-        response = requests.post(url, json=data, timeout=10)
         
-        print(f"🔎 Respuesta Green API: {response.status_code}")
-        
-        if response.status_code == 200:
+        # Probar cada URL hasta que funcione una
+        for i, url in enumerate(urls_to_try):
             try:
-                result = response.json()
-                print(f"✅ Mensaje enviado exitosamente: {result}")
-                return result
-            except json.JSONDecodeError:
-                print("⚠️ Respuesta no es JSON válido")
-                return {"error": "Invalid JSON response"}
-        else:
-            print(f"❌ Error HTTP {response.status_code}: {response.text}")
-            return {"error": f"HTTP {response.status_code}", "details": response.text}
+                print(f"🔄 Intentando URL {i+1}: {url[:50]}...")
+                response = requests.post(url, json=data, timeout=10)
+                
+                print(f"🔎 Respuesta Green API (URL {i+1}): {response.status_code}")
+                
+                if response.status_code == 200:
+                    try:
+                        result = response.json()
+                        print(f"✅ Mensaje enviado exitosamente con URL {i+1}: {result}")
+                        return result
+                    except json.JSONDecodeError:
+                        print("⚠️ Respuesta no es JSON válido pero código 200")
+                        return {"status": "sent", "details": "200 OK"}
+                elif response.status_code == 403:
+                    print(f"❌ Error 403 con URL {i+1}: {response.text[:200]}")
+                    continue  # Probar siguiente URL
+                else:
+                    print(f"❌ Error HTTP {response.status_code} con URL {i+1}: {response.text[:200]}")
+                    continue
+                    
+            except requests.exceptions.Timeout:
+                print(f"⚠️ Timeout con URL {i+1}")
+                continue
+            except Exception as e:
+                print(f"❌ Error con URL {i+1}: {e}")
+                continue
+        
+        # Si todas las URLs fallan
+        print("❌ Todas las URLs fallaron")
+        return {"error": "All URLs failed", "details": "403 Forbidden en todas"}
             
-    except requests.exceptions.Timeout:
-        print("⚠️ Timeout al enviar mensaje")
-        return {"error": "Timeout"}
     except Exception as e:
-        print(f"❌ Error enviando mensaje: {e}")
+        print(f"❌ Error general enviando mensaje: {e}")
         return {"error": str(e)}
 
 # --- Función para generar respuesta con IA ---
